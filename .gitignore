@@ -6,3 +6,4 @@ outputs/
 kaggle.json
 __pycache__/
 .ipynb_checkpoints/
+check_aug.png

@@ -25,6 +25,7 @@ def parse_args():
     p.add_argument("--lr", type=float, default=1e-3)
     p.add_argument("--img-size", type=int, default=256)
     p.add_argument("--base", type=int, default=32, help="base number of U-Net channels")
+    p.add_argument("--augment", action="store_true", help="augment the training images")
     p.add_argument("--num-workers", type=int, default=2)
     p.add_argument("--subset", type=int, default=0, help="use only the first N images (quick tests)")
     p.add_argument("--seed", type=int, default=42)
@@ -52,8 +53,8 @@ def main():
     print(f"device: {device}")
     print(f"settings: {vars(args)}")
 
-    # Data
-    train_ds = LungDataset(os.path.join(args.data_dir, "train"), args.img_size)
+    # Data: only the TRAIN set is augmented. Val stays untouched.
+    train_ds = LungDataset(os.path.join(args.data_dir, "train"), args.img_size, augment=args.augment)
     val_ds = LungDataset(os.path.join(args.data_dir, "val"), args.img_size)
     if args.subset:
         train_ds = Subset(train_ds, range(min(args.subset, len(train_ds))))
@@ -73,7 +74,7 @@ def main():
         optimizer, mode="max", factor=0.5, patience=2
     )
 
-    config = {"img_size": args.img_size, "base": args.base}
+    config = {"img_size": args.img_size, "base": args.base, "augment": args.augment}
     ckpt_path = os.path.join(args.out_dir, "best.pth")
     history = {"train_loss": [], "val_loss": [], "train_dice": [], "val_dice": []}
     best_dice = 0.0
